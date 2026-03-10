@@ -1,0 +1,11 @@
+.idea/
+__pycache__/
+*.pyc
+venv/
+.data/
+.env
+*.egg-info/
+dist/
+build/
+.coverage
+node_modules/

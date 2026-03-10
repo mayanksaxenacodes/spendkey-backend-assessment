@@ -1,0 +1,13 @@
+title,author,publisher,description,isbn,price,tags
+"The Pragmatic Programmer","David Thomas","Addison-Wesley","A guide to software craftsmanship","978-0-13-595705-9","$42.99","programming,software"
+"Clean Code","Robert C. Martin","Prentice Hall","A handbook of agile software craftsmanship","978-0-13-235088-4",3899,"programming,clean-code"
+"Design Patterns"," Erich Gamma ","Addison-Wesley","Elements of reusable object-oriented software","978-0201633610","$45.99","programming, design"
+"Refactoring","Martin Fowler","Addison-Wesley","Improving the design of existing code","978-0-20-148567-7",4199,"programming,refactoring"
+"The Mythical Man-Month","Frederick Brooks","Addison-Wesley","Essays on software engineering","978-0-20-183595-3","$29.99","software, management"
+"Code Complete","Steve McConnell","Microsoft Press","A practical handbook of software construction","978-0-73-561967-8",5299,"programming,construction"
+"Introduction to Algorithms","Thomas Cormen","MIT Press","A comprehensive textbook on algorithms","978-0-26-204630-5","$89.99","algorithms, computer-science"
+"Clean Code","Robert C. Martin","Prentice Hall","Duplicate entry that should be skipped","978-0-13-235088-4",3899,"programming,clean-code"
+"","","","Missing title field","978-0-00-000000-0","$19.99","unknown"
+"Artificial Intelligence: A Modern Approach","Stuart Russell","Prentice Hall","The leading textbook in AI","978-0-13-604259-4","$74.99","ai, machine-learning"
+"Compilers: Principles, Techniques, and Tools","Alfred Aho","Pearson","The 'Dragon Book' — a foundational text on compiler design","978-0321486813",,"compilers,programming"
+"Designing Data-Intensive Applications","Martin Kleppmann","O'Reilly Media","","978-1449373320","$45.99","data,distributed-systems"

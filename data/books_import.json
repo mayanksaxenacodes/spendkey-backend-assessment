@@ -1,0 +1,47 @@
+[
+  {
+    "title": "Structure and Interpretation of Computer Programs",
+    "author": "Harold Abelson",
+    "publisher": "MIT Press",
+    "description": "A foundational text on computer science and programming",
+    "isbn": "978-0-26-251087-5",
+    "price": "$54.99",
+    "tags": ["computer-science", "programming"]
+  },
+  {
+    "title": "The Art of Computer Programming",
+    "author": "Donald Knuth",
+    "publisher": "Addison-Wesley",
+    "description": "Knuth's magnum opus on algorithms and data structures",
+    "isbn": "978-0-20-103801-4",
+    "price": 7999,
+    "tags": ["algorithms", "computer-science"]
+  },
+  {
+    "title": "Clean Architecture",
+    "author": "Robert C. Martin",
+    "publisher": "Prentice Hall",
+    "description": "A guide to software architecture principles",
+    "isbn": "978-0-13-449416-6",
+    "price": "$34.99",
+    "tags": "architecture,clean-code"
+  },
+  {
+    "title": "Introduction to Algorithms",
+    "author": "Thomas Cormen",
+    "publisher": "MIT Press",
+    "description": "Duplicate from CSV — should be skipped",
+    "isbn": "978-0-26-204630-5",
+    "price": "$89.99",
+    "tags": ["algorithms"]
+  },
+  {
+    "title": "",
+    "author": "Unknown Author",
+    "publisher": "Unknown Press",
+    "description": "Invalid entry with no title",
+    "isbn": "978-0-00-000001-7",
+    "price": "$9.99",
+    "tags": ["invalid"]
+  }
+]
