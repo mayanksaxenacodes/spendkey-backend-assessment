@@ -80,6 +80,11 @@ may proceed to the section below.
   `/api/v1/books/recommend` using LangGraph. The agent should query the
   existing book inventory and return reasoned recommendations based on a
   user's natural language input.
+- [ ] **Documentation**: Update the project documentation to reflect any
+  changes you've made. This includes the README, quickstart guide, and any
+  other relevant docs. If you've introduced new dependencies, environment
+  variables, or endpoints, make sure they are documented so that another
+  developer could pick up where you left off.
 
 > **TIP** We'll be looking at the following when reviewing your submission;
 > test coverage, code standards, complexity, documentation and Git usage. If
