@@ -208,14 +208,18 @@ def validate_row(row: dict[str, t.Any]) -> t.Optional[dict[str, t.Any]]:
         A transformed dictionary ready for insertion, or None if invalid.
     """
     # Map source columns to database schema.
+    raw_title = row.get("book_title")
+    if raw_title is None or (isinstance(raw_title, str) and not raw_title.strip()):
+        raw_title = row.get("title")
+
     transformed: dict[str, t.Any] = {
-        "name": row.get("book_title", "").strip() if row.get("book_title") else None,
-        "description": row.get("description", "").strip() if row.get("description") else None,
+        "name": str(raw_title).strip() if raw_title else None,
+        "description": str(row.get("description")).strip() if row.get("description") else None,
         "isbn": normalise_isbn(row.get("isbn", "")),
         "price": normalise_price(row.get("price")),
         "tags": normalise_tags(row.get("tags", "")),
-        "author": row.get("author", "").strip() if row.get("author") else None,
-        "publisher": row.get("publisher", "").strip() if row.get("publisher") else None,
+        "author": str(row.get("author")).strip() if row.get("author") else None,
+        "publisher": str(row.get("publisher")).strip() if row.get("publisher") else None,
     }
 
     # Validate required fields.

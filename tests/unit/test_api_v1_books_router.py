@@ -771,3 +771,36 @@ def test_summarise_book_invalid_uid(
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert server_schema.Error(**data)
+
+
+def test_summarise_book_llm_failure(
+    client: testclient.TestClient,
+    get_book_by_uid: mock.MagicMock,
+) -> None:
+    """Should return a 500 response with descriptive error if LLM fails.
+
+    Args:
+        client: API test client.
+        get_book_by_uid: Mocked books database utility.
+    """
+    get_book_by_uid.return_value = {
+        "id": 1,
+        "name": "Rust for Rustaceans",
+        "description": "Description",
+        "isbn": "978-1-7185-0185-0",
+        "price": 3699,
+        "tags": ["computers"],
+        "author_id": 1,
+        "publisher_id": 1,
+        "created_on": datetime.now(),
+        "updated_on": datetime.now(),
+    }
+    with mock.patch("app.api.v1.books.llm.generate_summary") as mock_gen:
+        mock_gen.side_effect = Exception("OpenAI API key invalid or not provided")
+
+        response: requests.Response = client.post(f"{BASE_PATH}/1/summarise")
+        data: dict[str, t.Any] = response.json()
+
+        assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+        assert server_schema.Error(**data)
+        assert "Failed to generate summary: OpenAI API key invalid or not provided" in data["detail"]

@@ -287,10 +287,16 @@ def summarise_book(
             detail=err.detail,
         ) from err
 
-    summary = llm.generate_summary(
-        book_title=row["name"],
-        description=row.get("description"),
-    )
+    try:
+        summary = llm.generate_summary(
+            book_title=row["name"],
+            description=row.get("description"),
+        )
+    except Exception as err:
+        raise fastapi.HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to generate summary: {str(err)}",
+        ) from err
 
     row = crud.update_book_summary(uid=uid, summary=summary)
     return serializers.to_book(row=row)
