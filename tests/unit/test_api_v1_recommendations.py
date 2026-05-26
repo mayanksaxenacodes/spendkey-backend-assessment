@@ -96,14 +96,61 @@ def test_generate_recommendations(mock_chat: mock.MagicMock) -> None:
     assert result["recommendations"] == "Recommended Books"
 
 
+@mock.patch("app.api.v1.recommendations.agent.ChatOpenAI")
+def test_generate_recommendations_json(mock_chat: mock.MagicMock) -> None:
+    """Should parse structured JSON recommendations from LLM."""
+    mock_instance = mock_chat.return_value
+    mock_instance.invoke.return_value = mock.MagicMock(
+        content="```json\n{\n  \"recommendations\": [\n    {\n      \"book_id\": 1,\n      \"book_title\": \"Clean Code\",\n      \"relevance_score\": 0.95,\n      \"reasoning\": \"Highly recommended.\"\n    }\n  ]\n}\n```"
+    )
+    
+    state: agent.AgentState = {
+        "query": "test", 
+        "books": [{"id": 1, "name": "Book"}], 
+        "max_results": 1
+    }
+    result = agent._generate_recommendations(state)
+    assert result["recommendations"] == [
+        {
+            "book_id": 1,
+            "book_title": "Clean Code",
+            "relevance_score": 0.95,
+            "reasoning": "Highly recommended."
+        }
+    ]
+
+
+@mock.patch("app.api.v1.recommendations.agent.ChatOpenAI")
+def test_generate_recommendations_json_list(mock_chat: mock.MagicMock) -> None:
+    """Should parse simple JSON list recommendations from LLM."""
+    mock_instance = mock_chat.return_value
+    mock_instance.invoke.return_value = mock.MagicMock(
+        content="[\n  {\n    \"book_id\": 1,\n    \"book_title\": \"Clean Code\",\n    \"relevance_score\": 0.95,\n    \"reasoning\": \"Highly recommended.\"\n  }\n]"
+    )
+    
+    state: agent.AgentState = {
+        "query": "test", 
+        "books": [{"id": 1, "name": "Book"}], 
+        "max_results": 1
+    }
+    result = agent._generate_recommendations(state)
+    assert result["recommendations"] == [
+        {
+            "book_id": 1,
+            "book_title": "Clean Code",
+            "relevance_score": 0.95,
+            "reasoning": "Highly recommended."
+        }
+    ]
+
+
 def test_should_recommend() -> None:
-    """Should return END regardless of books (current implementation)."""
-    # Current implementation always returns END. Let's test both branches if any.
+    """Should return recommend if books present, else END."""
     state_empty: agent.AgentState = {"query": "", "books": [], "max_results": 1}
     assert agent._should_recommend(state_empty) == agent.END
     
     state_full: agent.AgentState = {"query": "", "books": [{"id": 1}], "max_results": 1}
-    assert agent._should_recommend(state_full) == agent.END
+    assert agent._should_recommend(state_full) == "recommend"
 
 
 def test_build_graph() -> None:

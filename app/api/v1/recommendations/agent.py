@@ -1,5 +1,6 @@
 # Copyright © 2026 SpendKey. All Rights Reserved.
 """LangGraph agent for book recommendations."""
+import json
 import os
 import typing as t
 
@@ -18,6 +19,7 @@ AgentState = t.TypedDict(
         "query": str,
         "books": list[dict[str, t.Any]],
         "max_results": int,
+        "recommendations": t.NotRequired[t.Any],
     },
 )
 
@@ -65,12 +67,42 @@ def _generate_recommendations(state: AgentState) -> AgentState:
         f"Based on the following book inventory:\n\n{books_context}\n\n"
         f"Recommend up to {state['max_results']} books that best match "
         f"this query: '{state['query']}'\n\n"
-        f"For each recommendation, provide the book ID, title, a relevance "
-        f"score (0.0-1.0), and a brief reasoning."
+        f"You MUST return your response ONLY as a valid JSON object. "
+        f"Do not include any markdown styling, code blocks, or extra text. "
+        f"The JSON object must have a single key 'recommendations' which is a list "
+        f"of objects. Each object must contain:\n"
+        f"- 'book_id' (integer)\n"
+        f"- 'book_title' (string)\n"
+        f"- 'relevance_score' (float between 0.0 and 1.0)\n"
+        f"- 'reasoning' (string explaining why this book matches the query)\n"
     )
 
     result = llm.invoke(prompt)
-    state["recommendations"] = result.content  # noqa: E501
+    raw_content = str(result.content).strip()
+
+    parsed_recommendations = None
+    try:
+        clean_content = raw_content
+        if clean_content.startswith("```"):
+            first_newline = clean_content.find("\n")
+            if first_newline != -1:
+                clean_content = clean_content[first_newline:].strip()
+            if clean_content.endswith("```"):
+                clean_content = clean_content[:-3].strip()
+
+        data = json.loads(clean_content)
+        if isinstance(data, dict) and "recommendations" in data:
+            parsed_recommendations = data["recommendations"]
+        elif isinstance(data, list):
+            parsed_recommendations = data
+    except Exception:
+        pass
+
+    if parsed_recommendations is not None:
+        state["recommendations"] = parsed_recommendations
+    else:
+        state["recommendations"] = raw_content
+
     return state
 
 
@@ -84,7 +116,7 @@ def _should_recommend(state: AgentState) -> str:
         The name of the next node to execute.
     """
     if len(state.get("books", [])) > 0:
-        return END
+        return "recommend"
     return END
 
 
