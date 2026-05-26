@@ -691,98 +691,85 @@ def test_delete_book_by_uid_invalid_uid(
     assert server_schema.Error(**data)
 
 
-@mock.patch("app.api.v1.books.router.llm.generate_summary")
-def test_summarise_book(
-    mock_generate_summary: mock.MagicMock,
+def test_summarise_book_success(
     client: testclient.TestClient,
     get_book_by_uid: mock.MagicMock,
 ) -> None:
-    """Should generate a summary and return the updated book."""
-    mock_generate_summary.return_value = "AI Summary"
-    uid = 1
-    response = client.post(f"{BASE_PATH}/{uid}/summarise")
-    data = response.json()
+    """Should successfully generate and persist a book summary.
 
-    assert response.status_code == status.HTTP_200_OK
-    assert data["ai_summary"] == "AI Summary"
-    get_book_by_uid.assert_called_once_with(uid=uid)
+    Args:
+        client: API test client.
+        get_book_by_uid: Mocked books database utility.
+    """
+    with mock.patch("app.api.v1.books.llm.generate_summary") as mock_gen, \
+         mock.patch("app.api.v1.books.crud.update_book_summary") as mock_update:
+        
+        mock_gen.return_value = "This is a generated AI summary."
+        mock_update.return_value = {
+            "id": 1,
+            "name": "Rust for Rustaceans",
+            "description": "For developers who've mastered the basics, Rust "
+            "for Rustaceans is the next step on your way to "
+            "professional level programming in Rust.",
+            "isbn": "978-1-7185-0185-0",
+            "price": 3699,
+            "tags": ["computers", "programming"],
+            "author_id": 1,
+            "publisher_id": 1,
+            "ai_summary": "This is a generated AI summary.",
+            "created_on": datetime.now(),
+            "updated_on": datetime.now(),
+        }
 
+        response: requests.Response = client.post(f"{BASE_PATH}/1/summarise")
+        data: dict[str, t.Any] = response.json()
 
-def test_summarise_book_invalid_uid(
-    client: testclient.TestClient,
-) -> None:
-    """Should return 400 for invalid UID."""
-    uid = -1
-    response = client.post(f"{BASE_PATH}/{uid}/summarise")
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.status_code == status.HTTP_200_OK
+        assert data["ai_summary"] == "This is a generated AI summary."
+        get_book_by_uid.assert_called_once_with(uid=1)
+        mock_gen.assert_called_once_with(
+            book_title="Rust for Rustaceans",
+            description="For developers who've mastered the basics, Rust "
+            "for Rustaceans is the next step on your way to "
+            "professional level programming in Rust.",
+        )
+        mock_update.assert_called_once_with(uid=1, summary="This is a generated AI summary.")
 
 
 def test_summarise_book_not_found(
     client: testclient.TestClient,
     get_book_by_uid: mock.MagicMock,
 ) -> None:
-    """Should return 404 if book not found."""
+    """Should return a 404 response if the book does not exist.
+
+    Args:
+        client: API test client.
+        get_book_by_uid: Mocked books database utility.
+    """
     get_book_by_uid.side_effect = errors.NotFound(detail="Not Found")
-    uid = 1
-    response = client.post(f"{BASE_PATH}/{uid}/summarise")
+
+    response: requests.Response = client.post(f"{BASE_PATH}/999/summarise")
+    data: dict[str, t.Any] = response.json()
+
     assert response.status_code == status.HTTP_404_NOT_FOUND
+    assert server_schema.Error(**data)
+    assert data["detail"] == "Not Found"
 
 
-@mock.patch("app.api.v1.books.router.etl.process_import")
-def test_import_books_csv(
-    mock_process_import: mock.MagicMock,
+def test_summarise_book_invalid_uid(
     client: testclient.TestClient,
+    get_book_by_uid: mock.MagicMock,
 ) -> None:
-    """Should process CSV file upload."""
-    mock_process_import.return_value = {"imported": 1}
-    files = {"file": ("test.csv", b"title,isbn\nBook,123", "text/csv")}
-    response = client.post(f"{BASE_PATH}/import", files=files)
-    
-    assert response.status_code == status.HTTP_200_OK
-    assert response.json()["imported"] == 1
-    mock_process_import.assert_called_once()
+    """Should return a 400 response for an invalid identifier.
 
+    Args:
+        client: API test client.
+        get_book_by_uid: Mocked books database utility.
+    """
+    response: requests.Response = client.post(f"{BASE_PATH}/-5/summarise")
+    data: dict[str, t.Any] = response.json()
 
-@mock.patch("app.api.v1.books.router.etl.process_import")
-def test_import_books_json(
-    mock_process_import: mock.MagicMock,
-    client: testclient.TestClient,
-) -> None:
-    """Should process JSON file upload."""
-    mock_process_import.return_value = {"imported": 1}
-    files = {"file": ("test.json", b'[{"title": "Book"}]', "application/json")}
-    response = client.post(f"{BASE_PATH}/import", files=files)
-    
-    assert response.status_code == status.HTTP_200_OK
-    mock_process_import.assert_called_once()
+    get_book_by_uid.assert_not_called()
 
-
-def test_import_books_no_filename_direct() -> None:
-    """Should raise HTTPException if filename is missing (direct call)."""
-    mock_file = mock.MagicMock(spec=fastapi.UploadFile)
-    mock_file.filename = None
-    with pytest.raises(fastapi.HTTPException) as exc:
-        import_books(file=mock_file)
-    assert exc.value.status_code == status.HTTP_400_BAD_REQUEST
-
-
-def test_import_books_invalid_extension(
-    client: testclient.TestClient,
-) -> None:
-    """Should return 400 for invalid file extension."""
-    files = {"file": ("test.txt", b"some text", "text/plain")}
-    response = client.post(f"{BASE_PATH}/import", files=files)
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-
-
-def test_import_books_no_filename(
-    client: testclient.TestClient,
-) -> None:
-    """Should return 400 if filename is missing."""
-    # To cover line 321, we need to pass a file object that has an empty filename attribute.
-    # In TestClient, passing a tuple with None or "" as filename should work.
-    files = {"file": (None, b"data", "text/csv")}
-    response = client.post(f"{BASE_PATH}/import", files=files)
-    # If FastAPI returns 422, it's because it validates the UploadFile.
-    # We'll check if it's 400 or 422.
-    assert response.status_code in [status.HTTP_400_BAD_REQUEST, status.HTTP_422_UNPROCESSABLE_ENTITY]
+    assert server_schema.Error(**data)

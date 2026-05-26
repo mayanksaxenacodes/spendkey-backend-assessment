@@ -16,13 +16,10 @@ def fixture_mock_model() -> t.Iterator[mock.MagicMock]:
         Mocked model instance.
     """
     with mock.patch("app.api.v1.books.llm._MODEL") as mocked:
-        # LangChain's | operator might wrap a MagicMock in a RunnableLambda,
-        # which calls the mock directly. So we mock the return value of the call.
-        mock_response = mock.MagicMock()
-        mock_response.content = "A compelling book about software engineering."
-        mocked.return_value = mock_response
-        # Also mock invoke just in case.
-        mocked.invoke.return_value = mock_response
+        mock_res = mock.MagicMock()
+        mock_res.content = "A compelling book about software engineering."
+        mocked.invoke.return_value = mock_res
+        mocked.return_value = mock_res
         yield mocked
 
 
