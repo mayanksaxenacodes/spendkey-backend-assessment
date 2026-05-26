@@ -13,18 +13,21 @@ ROW: dict[str, t.Any] = {
     "price": 999,
     "author_id": 1,
     "publisher_id": 1,
+    "ai_summary": "A great book.",
     "created_at": datetime.now(),
     "updated_at": datetime.now(),
 }
 
 
-def to_book() -> None:
+def test_to_book() -> None:
     """Should return a book schema."""
-    assert isinstance(serializers.to_book(row=ROW), schemas.Book)
+    res = serializers.to_book(row=ROW)
+    assert isinstance(res, schemas.Book)
+    assert res.ai_summary == "A great book."
 
 
-def to_book_list() -> None:
+def test_to_book_list() -> None:
     """Should return a book list schema."""
-    assert isinstance(
-        serializers.to_book_list(rows=[ROW], total=TOTAL), schemas.BookList
-    )
+    res = serializers.to_book_list(rows=[ROW], total=TOTAL)
+    assert isinstance(res, schemas.BookList)
+    assert res.data[0].ai_summary == "A great book."

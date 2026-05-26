@@ -15,12 +15,11 @@ def fixture_mock_llm() -> t.Iterator[mock.MagicMock]:
     Yields:
         Mocked LLM instance.
     """
-    with mock.patch("app.api.v1.books.llm.ChatOpenAI") as mocked:
-        mock_instance = mock.MagicMock()
-        mock_instance.invoke.return_value = mock.MagicMock(
-            content="A compelling book about software engineering."
-        )
-        mocked.return_value = mock_instance
+    with mock.patch("app.api.v1.books.llm._MODEL") as mocked:
+        mock_res = mock.MagicMock()
+        mock_res.content = "A compelling book about software engineering."
+        mocked.invoke.return_value = mock_res
+        mocked.return_value = mock_res
         yield mocked
 
 

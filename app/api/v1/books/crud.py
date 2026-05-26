@@ -85,6 +85,7 @@ description,
 isbn,
 price,
 tags,
+ai_summary,
 created_at,
 updated_at"""
         ).format(table=table)
@@ -163,6 +164,7 @@ description,
 isbn,
 price,
 tags,
+ai_summary,
 updated_at,
 created_at"""
         ).format(table=table)
@@ -207,3 +209,42 @@ def delete_book_by_uid(uid: int) -> None:
             raise errors.NotFound(
                 detail=f"The book 'id:{uid}' has not been found."
             )
+
+
+def update_book_summary(uid: int, summary: str) -> dict[str, t.Any]:
+    """Update the AI summary for an existing book in the database.
+
+    Args:
+        uid: An integer value for an existing book row.
+        summary: The AI summary string.
+
+    Returns:
+        The updated database row.
+
+    Raises:
+        NotFound: If the book does not exist in the database.
+    """
+    with database.get_pool().connection() as conn:
+        cursor = conn.cursor(row_factory=rows.dict_row)  # type: ignore
+        table = constants.TableNames.BOOK.value
+        statement = sql.SQL(
+            """UPDATE {table}
+SET
+ai_summary = %(ai_summary)s,
+updated_at = %(updated_at)s
+WHERE
+id = %(uid)s
+RETURNING *"""
+        ).format(table=table)
+        params: dict[str, t.Any] = {
+            "uid": uid,
+            "ai_summary": summary,
+            "updated_at": datetime.now(),
+        }
+        cursor.execute(query=statement, params=params)  # type: ignore
+        row: t.Optional[dict[str, t.Any]] = cursor.fetchone()  # type: ignore
+        if not row:
+            raise errors.NotFound(
+                detail=f"The book 'id:{uid}' has not been found."
+            )
+        return row

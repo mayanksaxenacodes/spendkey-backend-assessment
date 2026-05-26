@@ -3,7 +3,10 @@
 import os
 import typing as t
 
-from langchain.chat_models import ChatOpenAI
+try:
+    from langchain.chat_models import ChatOpenAI
+except ImportError:
+    from langchain_openai import ChatOpenAI
 from langgraph.graph import END, StateGraph
 
 from app.api.v1.books import crud

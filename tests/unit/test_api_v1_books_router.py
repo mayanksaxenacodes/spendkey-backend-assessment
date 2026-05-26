@@ -687,3 +687,87 @@ def test_delete_book_by_uid_invalid_uid(
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert server_schema.Error(**data)
+
+
+def test_summarise_book_success(
+    client: testclient.TestClient,
+    get_book_by_uid: mock.MagicMock,
+) -> None:
+    """Should successfully generate and persist a book summary.
+
+    Args:
+        client: API test client.
+        get_book_by_uid: Mocked books database utility.
+    """
+    with mock.patch("app.api.v1.books.llm.generate_summary") as mock_gen, \
+         mock.patch("app.api.v1.books.crud.update_book_summary") as mock_update:
+        
+        mock_gen.return_value = "This is a generated AI summary."
+        mock_update.return_value = {
+            "id": 1,
+            "name": "Rust for Rustaceans",
+            "description": "For developers who've mastered the basics, Rust "
+            "for Rustaceans is the next step on your way to "
+            "professional level programming in Rust.",
+            "isbn": "978-1-7185-0185-0",
+            "price": 3699,
+            "tags": ["computers", "programming"],
+            "author_id": 1,
+            "publisher_id": 1,
+            "ai_summary": "This is a generated AI summary.",
+            "created_on": datetime.now(),
+            "updated_on": datetime.now(),
+        }
+
+        response: requests.Response = client.post(f"{BASE_PATH}/1/summarise")
+        data: dict[str, t.Any] = response.json()
+
+        assert response.status_code == status.HTTP_200_OK
+        assert data["ai_summary"] == "This is a generated AI summary."
+        get_book_by_uid.assert_called_once_with(uid=1)
+        mock_gen.assert_called_once_with(
+            book_title="Rust for Rustaceans",
+            description="For developers who've mastered the basics, Rust "
+            "for Rustaceans is the next step on your way to "
+            "professional level programming in Rust.",
+        )
+        mock_update.assert_called_once_with(uid=1, summary="This is a generated AI summary.")
+
+
+def test_summarise_book_not_found(
+    client: testclient.TestClient,
+    get_book_by_uid: mock.MagicMock,
+) -> None:
+    """Should return a 404 response if the book does not exist.
+
+    Args:
+        client: API test client.
+        get_book_by_uid: Mocked books database utility.
+    """
+    get_book_by_uid.side_effect = errors.NotFound(detail="Not Found")
+
+    response: requests.Response = client.post(f"{BASE_PATH}/999/summarise")
+    data: dict[str, t.Any] = response.json()
+
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+    assert server_schema.Error(**data)
+    assert data["detail"] == "Not Found"
+
+
+def test_summarise_book_invalid_uid(
+    client: testclient.TestClient,
+    get_book_by_uid: mock.MagicMock,
+) -> None:
+    """Should return a 400 response for an invalid identifier.
+
+    Args:
+        client: API test client.
+        get_book_by_uid: Mocked books database utility.
+    """
+    response: requests.Response = client.post(f"{BASE_PATH}/-5/summarise")
+    data: dict[str, t.Any] = response.json()
+
+    get_book_by_uid.assert_not_called()
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert server_schema.Error(**data)

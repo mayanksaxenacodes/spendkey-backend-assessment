@@ -40,6 +40,7 @@ def to_book(row: dict[str, t.Any]) -> schemas.Book:
         price=row.get("price"),
         author_id=row.get("author_id"),
         publisher_id=row.get("publisher_id"),
+        ai_summary=row.get("ai_summary"),
         created_at=row.get("created_at", datetime.now()),
         updated_at=row.get("updated_at", datetime.now()),
     )

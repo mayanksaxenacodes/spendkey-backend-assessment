@@ -292,7 +292,7 @@ def summarise_book(
         description=row.get("description"),
     )
 
-    row["ai_summary"] = summary
+    row = crud.update_book_summary(uid=uid, summary=summary)
     return serializers.to_book(row=row)
 
 
