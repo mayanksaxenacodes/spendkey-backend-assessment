@@ -29,13 +29,56 @@ make database
 ### Running the API Server
 ```bash
 make start
+### Running the API Server
+Starts the FastAPI development server on `http://localhost:3000`.
+
+**Prerequisites:**
+- Ensure the database is running (`make database`).
+- Set an `OPENAI_KEY` environment variable (a dummy key like `dummy-key` is sufficient for starting the server).
+
+**Commands:**
+```powershell
+# Windows
+$env:OPENAI_KEY="your-key"
+$env:DATABASE_URI="postgresql://postgres:postgres@localhost:5432/spendkey"
+.\venv\Scripts\python -m uvicorn --factory app.server.factory:create_app --port 3000 --reload
+
+# macOS/Linux
+export OPENAI_KEY="your-key"
+export DATABASE_URI="postgresql://postgres:postgres@localhost:5432/spendkey"
+./venv/bin/python -m uvicorn --factory app.server.factory:create_app --port 3000 --reload
 ```
-The server runs on `http://localhost:3000` by default (port can be overridden via `PORT` env var). Interactive OpenAPI docs are available at `http://localhost:3000/docs` if enabled.
+
+Interactive OpenAPI docs are available at `http://localhost:3000/` by default if enabled.
 
 ### Running Tests
-```bash
-make unit
+Executes the unit test suite.
+
+```powershell
+# Windows
+$env:OPENAI_KEY="dummy-key"
+.\venv\Scripts\python -m pytest tests/unit
+
+# macOS/Linux
+export OPENAI_KEY="dummy-key"
+./venv/bin/pytest tests/unit
 ```
+
+### Checking Coverage
+Runs tests and generates a code coverage report.
+
+```powershell
+# Windows
+$env:OPENAI_KEY="dummy-key"
+.\venv\Scripts\python -m coverage run -m pytest tests/unit
+.\venv\Scripts\python -m coverage report -m
+
+# macOS/Linux
+export OPENAI_KEY="dummy-key"
+./venv/bin/coverage run -m pytest tests/unit
+./venv/bin/coverage report -m
+```
+
 
 ### Linting and Formatting
 ```bash
