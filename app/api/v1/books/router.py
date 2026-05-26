@@ -317,13 +317,14 @@ def import_books(
     Raises:
         HTTPException: If the file cannot be processed.
     """
-    if not file.filename:
+    filename = file.filename or ""
+    if not filename:
         raise fastapi.HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="A filename is required.",
         )
 
-    if file.filename.endswith(".csv"):
+    if filename.endswith(".csv"):
         file_type = "csv"
     elif file.filename.endswith(".json"):
         file_type = "json"

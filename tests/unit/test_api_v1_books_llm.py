@@ -8,12 +8,12 @@ import pytest
 from app.api.v1.books import llm
 
 
-@pytest.fixture(name="mock_llm")
-def fixture_mock_llm() -> t.Iterator[mock.MagicMock]:
-    """Fixture for patching the ChatOpenAI model.
+@pytest.fixture(name="mock_model")
+def fixture_mock_model() -> t.Iterator[mock.MagicMock]:
+    """Fixture for patching the LLM model instance.
 
     Yields:
-        Mocked LLM instance.
+        Mocked model instance.
     """
     with mock.patch("app.api.v1.books.llm._MODEL") as mocked:
         mock_res = mock.MagicMock()
@@ -23,28 +23,29 @@ def fixture_mock_llm() -> t.Iterator[mock.MagicMock]:
         yield mocked
 
 
-def test_generate_summary(mock_llm: mock.MagicMock) -> None:
+def test_generate_summary(mock_model: mock.MagicMock) -> None:
     """Should generate a summary string for a given book.
 
     Args:
-        mock_llm: Mocked LLM instance.
+        mock_model: Mocked model instance.
     """
     result = llm.generate_summary(
         book_title="Clean Code",
         description="A handbook of agile software craftsmanship.",
     )
     assert isinstance(result, str)
-    assert len(result) > 0
+    assert result == "A compelling book about software engineering."
 
 
-def test_generate_summary_no_description(mock_llm: mock.MagicMock) -> None:
+def test_generate_summary_no_description(mock_model: mock.MagicMock) -> None:
     """Should handle books with no description gracefully.
 
     Args:
-        mock_llm: Mocked LLM instance.
+        mock_model: Mocked model instance.
     """
     result = llm.generate_summary(
         book_title="Unknown Book",
         description=None,
     )
     assert isinstance(result, str)
+    assert result == "A compelling book about software engineering."

@@ -1,10 +1,12 @@
 #!/bin/bash
 set -o errexit
-psql -v ON_ERROR_STOP=1 --user "${POSTGRES_USER}" --dbname "${POSTGRESDB}" <<-EOSQL
-BEGIN; -- This file configures and seeds the database tables.
+
+psql -v ON_ERROR_STOP=1 --user "${POSTGRES_USER}" --dbname "spendkey" <<-EOSQL
+BEGIN;
 CREATE SCHEMA Authors;
 CREATE SCHEMA Publishers;
 CREATE SCHEMA Books;
+
 CREATE TABLE Authors.Author (
     id BIGINT GENERATED ALWAYS AS IDENTITY,
     name TEXT NOT NULL,
@@ -12,6 +14,7 @@ CREATE TABLE Authors.Author (
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (id)
 );
+
 CREATE TABLE Publishers.Publisher (
     id BIGINT GENERATED ALWAYS AS IDENTITY,
     name TEXT NOT NULL,
@@ -19,6 +22,7 @@ CREATE TABLE Publishers.Publisher (
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (id)
 );
+
 CREATE TABLE Books.Book (
     id BIGINT GENERATED ALWAYS AS IDENTITY,
     name TEXT NOT NULL,
@@ -35,7 +39,7 @@ CREATE TABLE Books.Book (
     FOREIGN KEY(author_id) REFERENCES Authors.author(id),
     FOREIGN KEY(publisher_id) REFERENCES Publishers.Publisher(id)
 );
-COMMIT;
+
 INSERT INTO Publishers.publisher (name) VALUES ('Harper Colins'), ('Microsoft'), ('Manning');
 INSERT INTO Authors.Author (name) VALUES ('J.R.R Tolkien'), ('Charles Petzold'), ('Tim McNamara');
 INSERT INTO Books.Book (name, description, isbn, tags, price, author_id, publisher_id)
@@ -67,4 +71,5 @@ VALUES
     3,
     3
 );
+COMMIT;
 EOSQL

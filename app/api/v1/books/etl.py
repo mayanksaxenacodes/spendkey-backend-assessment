@@ -66,7 +66,7 @@ def normalise_price(raw_price: t.Any) -> t.Optional[int]:
 
     if "." in price_str:
         try:
-            return int(float(price_str) * 100)
+            return int(round(float(price_str) * 100))
         except ValueError:
             return None
 
@@ -209,7 +209,7 @@ def validate_row(row: dict[str, t.Any]) -> t.Optional[dict[str, t.Any]]:
     """
     # Map source columns to database schema.
     transformed: dict[str, t.Any] = {
-        "name": row.get("book_title", "").strip() if row.get("book_title") else None,
+        "name": row.get("title", "").strip() if row.get("title") else None,
         "description": row.get("description", "").strip() if row.get("description") else None,
         "isbn": normalise_isbn(row.get("isbn", "")),
         "price": normalise_price(row.get("price")),
@@ -332,6 +332,8 @@ def process_import(file_content: str, file_type: str = "csv") -> dict[str, t.Any
             record = insert_book(conn=conn, book=validated)
             existing_isbns.add(validated["isbn"])
             imported.append(record)
+
+        conn.commit()
 
     return {
         "imported": len(imported),
