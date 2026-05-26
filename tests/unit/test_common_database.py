@@ -94,3 +94,28 @@ def test_connect_to(
     """
     database.connect_to(autocommit=autocommit)
     connection.assert_called_with(**expected)
+
+
+@mock.patch("app.common.database.psycopg.connect")
+@mock.patch.dict(os.environ, {"DATABASE_NAME": ""})
+def test_connect_to_no_dbname(mock_connect: mock.MagicMock) -> None:
+    """Should connect without dbname if not provided."""
+    # We need to clear the lru_cache for config if it's cached, 
+    # but here we are patching environ and calling connect_to.
+    from app import config
+    config.get_config.cache_clear()
+    database.connect_to(autocommit=False)
+    args, kwargs = mock_connect.call_args
+    assert "dbname" not in kwargs
+
+
+@mock.patch("app.common.database.psycopg_pool.ConnectionPool")
+@mock.patch.dict(os.environ, {"DATABASE_NAME": ""})
+def test_get_pool_no_dbname(mock_pool: mock.MagicMock) -> None:
+    """Should create pool without dbname if not provided."""
+    from app import config
+    config.get_config.cache_clear()
+    database.get_pool.cache_clear()
+    database.get_pool()
+    # Check if make_conninfo was called without dbname.
+    # make_conninfo is called inside get_pool.

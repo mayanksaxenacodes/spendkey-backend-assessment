@@ -68,3 +68,45 @@ def test_recommend_books_missing_query(
     response = client.post(f"{BASE_PATH}/", json=body)
 
     assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+
+
+from app.api.v1.recommendations import agent
+
+@mock.patch("app.api.v1.recommendations.agent.crud.list_books")
+def test_fetch_inventory(mock_list_books: mock.MagicMock) -> None:
+    """Should fetch books from crud and update state."""
+    mock_list_books.return_value = [{"id": 1, "name": "Book"}]
+    state: agent.AgentState = {"query": "test", "books": [], "max_results": 1}
+    result = agent._fetch_inventory(state)
+    assert result["books"] == [{"id": 1, "name": "Book"}]
+
+
+@mock.patch("app.api.v1.recommendations.agent.ChatOpenAI")
+def test_generate_recommendations(mock_chat: mock.MagicMock) -> None:
+    """Should call LLM and update state with recommendations."""
+    mock_instance = mock_chat.return_value
+    mock_instance.invoke.return_value = mock.MagicMock(content="Recommended Books")
+    
+    state: agent.AgentState = {
+        "query": "test", 
+        "books": [{"id": 1, "name": "Book"}], 
+        "max_results": 1
+    }
+    result = agent._generate_recommendations(state)
+    assert result["recommendations"] == "Recommended Books"
+
+
+def test_should_recommend() -> None:
+    """Should return END regardless of books (current implementation)."""
+    # Current implementation always returns END. Let's test both branches if any.
+    state_empty: agent.AgentState = {"query": "", "books": [], "max_results": 1}
+    assert agent._should_recommend(state_empty) == agent.END
+    
+    state_full: agent.AgentState = {"query": "", "books": [{"id": 1}], "max_results": 1}
+    assert agent._should_recommend(state_full) == agent.END
+
+
+def test_build_graph() -> None:
+    """Should build a compiled graph."""
+    graph = agent.build_graph()
+    assert graph is not None

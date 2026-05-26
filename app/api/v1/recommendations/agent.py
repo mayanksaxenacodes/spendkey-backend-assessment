@@ -3,7 +3,7 @@
 import os
 import typing as t
 
-from langchain.chat_models import ChatOpenAI
+from langchain_openai import ChatOpenAI
 from langgraph.graph import END, StateGraph
 
 from app.api.v1.books import crud
