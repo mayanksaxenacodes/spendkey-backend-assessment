@@ -66,7 +66,7 @@ def normalise_price(raw_price: t.Any) -> t.Optional[int]:
 
     if "." in price_str:
         try:
-            return int(float(price_str) * 100)
+            return int(round(float(price_str) * 100))
         except ValueError:
             return None
 
