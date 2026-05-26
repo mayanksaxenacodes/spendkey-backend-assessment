@@ -25,7 +25,6 @@ def test_book() -> None:
         "price",
         "author_id",
         "publisher_id",
-        "ai_summary",
         "created_at",
         "updated_at",
     ],

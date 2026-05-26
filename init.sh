@@ -30,7 +30,6 @@ CREATE TABLE Books.Book (
     isbn TEXT,
     tags TEXT[],
     price INT,
-    ai_summary TEXT,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     author_id INT,

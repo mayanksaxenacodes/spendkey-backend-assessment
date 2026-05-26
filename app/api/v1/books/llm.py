@@ -3,19 +3,14 @@
 import os
 import typing as t
 
-try:
-    from langchain.chat_models import ChatOpenAI
-except ImportError:
-    from langchain_openai import ChatOpenAI
-try:
-    from langchain.prompts import ChatPromptTemplate
-except ImportError:
-    from langchain_core.prompts import ChatPromptTemplate
+from langchain_openai import ChatOpenAI
+from langchain_core.prompts import ChatPromptTemplate
 
+# BUG: Should be OPENAI_API_KEY — the standard env var name.
 _MODEL = ChatOpenAI(
     model="gpt-4o-mini",
     temperature=0.3,
-    api_key=os.environ.get("OPENAI_API_KEY") or os.environ.get("OPENAI_KEY") or "mock-key",
+    api_key=os.environ.get("OPENAI_KEY"),
 )
 
 _SUMMARY_PROMPT = ChatPromptTemplate.from_messages(

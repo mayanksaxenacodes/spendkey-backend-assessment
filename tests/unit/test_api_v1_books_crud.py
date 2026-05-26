@@ -81,7 +81,6 @@ description,
 isbn,
 price,
 tags,
-ai_summary,
 created_at,
 updated_at"""
     ).format(table=table)
@@ -183,7 +182,6 @@ description,
 isbn,
 price,
 tags,
-ai_summary,
 updated_at,
 created_at"""
     ).format(table=table)
@@ -253,47 +251,3 @@ def test_delete_book_not_found(cursor: mock.MagicMock) -> None:
     cursor.fetchone.return_value = None  # type: ignore
     with pytest.raises(errors.NotFound):
         crud.delete_book_by_uid(uid=1)
-
-
-def test_update_book_summary(cursor: mock.MagicMock) -> None:
-    """Should update the ai_summary for a book in the database.
-
-    Args:
-        cursor: Mocked database cursor.
-    """
-    uid = 1
-    summary = "A great and concise book summary."
-    table = constants.TableNames.BOOK.value
-    expected_query = sql.SQL(
-        """UPDATE {table}
-SET
-ai_summary = %(ai_summary)s,
-updated_at = %(updated_at)s
-WHERE
-id = %(uid)s
-RETURNING *"""
-    ).format(table=table)
-    expected_params = {
-        "uid": uid,
-        "ai_summary": summary,
-        "updated_at": mock.ANY,
-    }
-    cursor.fetchone.return_value = {"id": uid, "ai_summary": summary}  # type: ignore
-    
-    res = crud.update_book_summary(uid=uid, summary=summary)
-    assert res == {"id": uid, "ai_summary": summary}
-    cursor.execute.assert_called_with(  # type: ignore
-        query=expected_query,
-        params=expected_params,
-    )
-
-
-def test_update_book_summary_not_found(cursor: mock.MagicMock) -> None:
-    """Should raise NotFound when updating summary of non-existent book.
-
-    Args:
-        cursor: Mocked database cursor.
-    """
-    cursor.fetchone.return_value = None  # type: ignore
-    with pytest.raises(errors.NotFound):
-        crud.update_book_summary(uid=1, summary="Summary")
