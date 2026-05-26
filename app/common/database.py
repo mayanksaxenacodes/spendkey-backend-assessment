@@ -24,6 +24,9 @@ def connect_to(
     """
     cfg = config.get_config()
 
+    if cfg.database_uri:
+        return psycopg.connect(conninfo=cfg.database_uri, autocommit=autocommit or False)
+
     params: dict[str, t.Union[str, int, bool]] = {
         "user": cfg.database_username,
         "host": cfg.database_host,
@@ -47,17 +50,21 @@ def get_pool():
     """
     cfg = config.get_config()
 
-    params: dict[str, t.Union[str, int]] = {
-        "user": cfg.database_username,
-        "host": cfg.database_host,
-        "port": cfg.database_port,
-        "password": cfg.database_password,
-    }
+    if cfg.database_uri:
+        conn_info = cfg.database_uri
+    else:
+        params: dict[str, t.Union[str, int]] = {
+            "user": cfg.database_username,
+            "host": cfg.database_host,
+            "port": cfg.database_port,
+            "password": cfg.database_password,
+        }
 
-    if cfg.database_name:
-        params["dbname"] = cfg.database_name
+        if cfg.database_name:
+            params["dbname"] = cfg.database_name
 
-    conn_info = psycopg.conninfo.make_conninfo(**params)
+        conn_info = psycopg.conninfo.make_conninfo(**params)
+
     conn_args: dict[str, int] = {
         "keepalives": 1,
         "keepalives_idle": 30,

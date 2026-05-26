@@ -5,6 +5,7 @@
         https://fastapi.tiangolo.com/advanced/settings
 """
 import functools
+import typing as t
 from os import environ
 
 from app.common import strings
@@ -35,6 +36,15 @@ class Config:
             The currently configured application name.
         """
         return environ.get("APP_NAME", "bweb-api")
+
+    @property
+    def database_uri(self) -> t.Optional[str]:
+        """Database connection URI.
+
+        Returns:
+            The currently configured database connection URI.
+        """
+        return environ.get("DATABASE_URI")
 
     @property
     def database_username(self) -> str:

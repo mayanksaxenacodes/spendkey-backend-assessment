@@ -4,12 +4,14 @@ import typing as t
 from datetime import datetime
 from unittest import mock
 
+import fastapi
 import pytest
 import requests
 from fastapi import status, testclient
 
 from app import config
 from app.api.v1.books import schemas
+from app.api.v1.books.router import import_books
 from app.common import errors
 from app.server import schemas as server_schema
 
