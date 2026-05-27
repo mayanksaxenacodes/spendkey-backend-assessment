@@ -54,6 +54,24 @@ Once you're familiar with our contribution process, follow our [quickstart]
 guide to get this project setup on your machine for local development. With
 your machine setup, you can proceed with completing the three tasks below.
 
+### 🪟 Windows Local Development Quickstart
+
+If you are developing locally on a Windows Command Prompt or PowerShell environment, you can bypass complex setups (`make` commands or WSL bash activation) and use our custom pre-configured Windows batch files:
+
+* **🚀 Launching the API Server**:
+  Double-click **`run.bat`** in File Explorer, or execute it in your terminal from the project root:
+  ```cmd
+  .\run.bat
+  ```
+  *This automatically initializes the virtual environment, configures the environment variables (`DATABASE_URI`, `OPENAI_KEY`), maps loopback connections (`127.0.0.1`) to prevent psycopg timeouts, and launches the FastAPI Uvicorn server on `http://127.0.0.1:8000`.*
+
+* **🧪 Running Code Coverage**:
+  Double-click **`coverage.bat`** in File Explorer, or execute it in your terminal from the project root:
+  ```cmd
+  .\coverage.bat
+  ```
+  *This executes the entire unit test suite under coverage tracking and prints a formatted code coverage analysis report directly to your console window, pausing at the end so you can inspect the file breakdown.*
+
 [contributing]: docs/CONTRIBUTING.md
 [quickstart]: docs/quickstart.md
 
