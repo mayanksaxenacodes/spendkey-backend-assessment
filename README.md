@@ -109,6 +109,112 @@ We'll assess your work and share feedback through the recruitment channels.
 Thank you for taking the time to complete this technical assessment, we wish
 you the best of luck and will be in touch.
 
+
+## 🛠️ Assumptions & Local Configuration
+
+To ensure a seamless local evaluation of this assessment project on Windows, several environmental configurations and design assumptions have been implemented:
+
+> [!IMPORTANT]
+> **1. OpenAI LLM Integration & Dummy API Keys**
+> * A `"dummy-key"` is pre-configured for the `OPENAI_KEY` environment variable in local scripts (`start.ps1` and `run.bat`).
+> * **Unit Tests**: The entire test suite isolates LLM network calls using `unittest.mock`. As a result, all **211 tests pass successfully** out of the box without requiring a live OpenAI API key.
+> * **Live Endpoints**: Running features **GBI-001** and **GBI-003** live on the local server requires a valid OpenAI API key. Set your key under the `OPENAI_KEY` environment variable in your terminal or inside `start.ps1` / `run.bat` before launching.
+
+> [!NOTE]
+> **2. Database loopback connection**
+> * Local startup configurations map `DATABASE_URI` to `127.0.0.1` instead of `localhost`. This resolves local IPv6 network translation delays (where `localhost` resolves to `::1`) in psycopg's connection pool, which otherwise cause 30-second query timeouts.
+> * The Postgres container is pre-seeded with 3 default authors, publishers, and books via the `init.sh` container initialization script.
+
+---
+
+## 📝 Feature Changelogs & API Payload Examples
+
+This project implements all three requested core features on the main application routing layer.
+
+### 🤖 GBI-001: AI Book Summaries (`/api/v1/books/{uid}/summarise`)
+Automatically generates a short summary based on a book's title and description using LangChain, and persists it to a new `ai_summary` column on the books table.
+
+* **Method**: `POST`
+* **URL**: `http://127.0.0.1:8000/api/v1/books/{uid}/summarise`
+* **Example curl Request**:
+  ```bash
+  curl -X POST http://127.0.0.1:8000/api/v1/books/1/summarise
+  ```
+* **Example JSON Response**:
+  ```json
+  {
+    "id": 1,
+    "name": "The Silmarillion",
+    "description": "The Silmarilli were three perfect jewels created by Feanor...",
+    "isbn": "978-0-00-752322-1",
+    "tags": ["fantasy", "masterwork", "wizards", "fiction"],
+    "price": 999,
+    "ai_summary": "A high fantasy masterwork detailing the tragic battle of Elves and Men against the dark lord Morgoth over three perfect stolen jewels.",
+    "author_id": 1,
+    "publisher_id": 1
+  }
+  ```
+
+---
+
+### ⚡ GBI-002: Bulk Bookstore ETL Pipeline (`/api/v1/books/import`)
+Accepts multipart file uploads (CSV and JSON), validates fields, normalises price strings/integers to cents, maps or creates author/publisher entities, and skips duplicate ISBN entries.
+
+* **Method**: `POST`
+* **URL**: `http://127.0.0.1:8000/api/v1/books/import`
+* **Example JSON Catalog payload**:
+  ```json
+  [
+    {
+      "book_title": "The Hobbit",
+      "description": "A delightful children's fantasy story.",
+      "isbn": "9780261103344",
+      "author_name": "J.R.R Tolkien",
+      "publisher_name": "Harper Colins",
+      "price": "$12.99"
+    }
+  ]
+  ```
+* **Example JSON Response**:
+  ```json
+  {
+    "message": "Import completed successfully.",
+    "imported_count": 1,
+    "skipped_count": 0
+  }
+  ```
+
+---
+
+### 🔮 GBI-003: Agentic Recommendation Engine (`/api/v1/recommendations/`)
+An agentic workflow built using LangGraph's `StateGraph` which queries the book database catalog and utilizes `gpt-4o-mini` to reason, rank, and explain suggestions in response to a natural language search query.
+
+* **Method**: `POST`
+* **URL**: `http://127.0.0.1:8000/api/v1/recommendations/`
+* **Request Body Schema**:
+  ```json
+  {
+    "query": "I want to read something about computer systems or engineering",
+    "max_results": 2
+  }
+  ```
+* **Example JSON Response**:
+  ```json
+  {
+    "query": "I want to read something about computer systems or engineering",
+    "recommendations": [
+      {
+        "book_id": 2,
+        "book_title": "Code",
+        "relevance_score": 0.95,
+        "reasoning": "This book provides a foundational look at the internal engineering and electronics of computers and smart appliances, directly matching your query."
+      }
+    ]
+  }
+  ```
+
+---
+
 ## Copyright
 
 Copyright © 2026 SpendKey. All Rights Reserved.
@@ -120,3 +226,4 @@ details.
 **Proprietary and confidential.**
 
 [license]: LICENSE
+
